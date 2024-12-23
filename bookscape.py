@@ -146,7 +146,7 @@ if selected == "Search":
             if not search_query.strip():
                 st.error("Search query cannot be empty.")
             else:
-                api_key = "AIzaSyDSVnISPmCbFmhS4TsFc65DQZN3lYCVRxU" 
+                api_key = "Your API KEY" 
                 books_data = fetch_books_data(search_query, api_key)
                 if books_data:
                     books_list = []
