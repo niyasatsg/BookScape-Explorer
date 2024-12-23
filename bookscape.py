@@ -12,7 +12,7 @@ from streamlit.runtime.caching import cache_data
 
 # Title of the project
 st.image('images/Bookscape-HeaderLogo.png')
-engine = create_engine('mysql+pymysql://root:K00th%40n%40llur@localhost:3306/bookscape')
+engine = create_engine('mysql+pymysql://root:P@ssw0rd@localhost:3306/bookscape')
 # Custom CSS to center the dataframe
 st.markdown(
     """
@@ -65,7 +65,7 @@ def fetch_books_data(query, api_key, max_results=5):
 def insert_books_into_db(books_list):
     try:
         # Create SQLAlchemy engine
-        engine = create_engine('mysql+pymysql://root:K00th%40n%40llur@localhost:3306/bookscape')
+        engine = create_engine('mysql+pymysql://root:P@ssw0rd@localhost:3306/bookscape')
         # Insert books into the database
         with engine.connect() as connection:
             for book in books_list:
