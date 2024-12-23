@@ -11,7 +11,7 @@ from requests.exceptions import HTTPError
 from streamlit.runtime.caching import cache_data
 
 # Title of the project
-st.image('C:/Users/niyas.abdul/Documents/Bookscape-HeaderLogo.png')
+st.image('images/Bookscape-HeaderLogo.png')
 engine = create_engine('mysql+pymysql://root:K00th%40n%40llur@localhost:3306/bookscape')
 # Custom CSS to center the dataframe
 st.markdown(
