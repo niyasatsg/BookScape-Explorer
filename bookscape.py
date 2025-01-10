@@ -11,8 +11,8 @@ from requests.exceptions import HTTPError
 from streamlit.runtime.caching import cache_data
 
 # Title of the project
-st.image('images/Bookscape-HeaderLogo.png')
-engine = create_engine('mysql+pymysql://root:P@ssw0rd@localhost:3306/bookscape')
+st.image('C:/Users/niyas.abdul/Documents/Bookscape-HeaderLogo.png')
+engine = create_engine('mysql+pymysql://root:K00th%40n%40llur@localhost:3306/bookscape')
 # Custom CSS to center the dataframe
 st.markdown(
     """
@@ -65,7 +65,7 @@ def fetch_books_data(query, api_key, max_results=5):
 def insert_books_into_db(books_list):
     try:
         # Create SQLAlchemy engine
-        engine = create_engine('mysql+pymysql://root:P@ssw0rd@localhost:3306/bookscape')
+        engine = create_engine('mysql+pymysql://root:K00th%40n%40llur@localhost:3306/bookscape')
         # Insert books into the database
         with engine.connect() as connection:
             for book in books_list:
@@ -127,6 +127,14 @@ def streamlit_menu(sidebar_menu=1):
             )
         return selected
 selected = streamlit_menu(sidebar_menu=sidebar_Menu)
+# Set a time-to-live (TTL) to refresh the cache periodically
+@st.cache_data
+@st.cache_data(ttl=60)  
+# Fetch data from the database
+def fetch_data(query):
+    with engine.connect() as connection:
+        result = pd.read_sql(query, connection)
+    return result
 # Home Page
 if selected == "Home":
     st.write("""
@@ -146,7 +154,7 @@ if selected == "Search":
             if not search_query.strip():
                 st.error("Search query cannot be empty.")
             else:
-                api_key = "Your API KEY" 
+                api_key = "AIzaSyDSVnISPmCbFmhS4TsFc65DQZN3lYCVRxU" 
                 books_data = fetch_books_data(search_query, api_key)
                 if books_data:
                     books_list = []
@@ -185,13 +193,13 @@ if selected == "Search":
 
                     })
 
-                df_books = pd.DataFrame(books_list)
-                # Convert dataframe to HTML
-                html_table = df_books.to_html(classes='dataframe', index=False)
-                # Display the HTML table
-                st.markdown(f'<div class="dataframe-container">{html_table}</div>', unsafe_allow_html=True)
-                # Insert books into database
-                insert_books_into_db(books_list)
+                    df_books = pd.DataFrame(books_list)
+                    # Convert dataframe to HTML
+                    html_table = df_books.to_html(classes='dataframe', index=False)
+                    # Display the HTML table
+                    st.markdown(f'<div class="dataframe-container">{html_table}</div>', unsafe_allow_html=True)
+                    # Insert books into database
+                    insert_books_into_db(books_list)
 # Perform data analysis with the given 20 different questions
 if selected == "Data Analysis":
     options = ["1.Check Availability of eBooks vs Physical Books", "2.Find the Publisher with the Most Books Published", "3.Identify the Publisher with the Highest Average Rating", "4.Get the Top 5 Most Expensive Books by Retail Price", "5.Find Books Published After 2010 with at Least 500 Pages", "6.List Books with Discounts Greater than 20%", "7.Find the Average Page Count for eBooks vs Physical Books", "8.Find the Top 3 Authors with the Most Books", "9.List Publishers with More than 10 Books", "10.Find the Average Page Count for Each Category", "11.Retrieve Books with More than 3 Authors", "12.Books with Ratings Count Greater Than the Average", "13.Books with the Same Author Published in the Same Year", "14.Books with a Specific Keyword in the Title", "15.Year with the Highest Average Book Price", "16.Count Authors Who Published 3 Consecutive Years", "17.Write a SQL query to find authors who have published books in the same year but under different publishers. Return the authors, year, and the COUNT of books they published in that year.", "18.Create a query to find the average amount_retailPrice of eBooks and physical books. Return a single result set with columns for avg_ebook_price and avg_physical_price. Ensure to handle cases where either category may have no entries", "19.To identify books that have an averageRating that is more than two standard deviations away from the average rating of all books. Return the title, averageRating, and ratingsCount for these outliers.", "20.Determines which publisher has the highest average rating among its books, but only for publishers that have published more than 10 books. Return the publisher, average_rating, and the number of books published."]
@@ -207,15 +215,6 @@ if selected == "Data Analysis":
             GROUP BY 
                 isEbook
             """
-
-            # Fetch data from the database
-            @st.cache_data
-            @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-            def fetch_data(query):
-                with engine.connect() as connection:
-                    result = pd.read_sql(query, connection)
-                return result
-
             # Fetch the data
             data = fetch_data(query)
 
@@ -254,12 +253,6 @@ if selected == "Data Analysis":
                 count DESC
             LIMIT 1
             """
-            # Fetch data from the database
-            @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-            def fetch_data(query):
-                with engine.connect() as connection:
-                    result = pd.read_sql(query, connection)
-                return result
             # Fetch the data
             data = fetch_data(query)
             # Display the data
@@ -289,13 +282,6 @@ if selected == "Data Analysis":
             avg_rating DESC
         LIMIT 1
         """
-
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
 
         # Fetch the data
         data = fetch_data(query)
@@ -328,14 +314,6 @@ if selected == "Data Analysis":
             amount_retailPrice DESC
         LIMIT 5
         """
-
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # Fetch the data
         data = fetch_data(query)
 
@@ -369,13 +347,6 @@ if selected == "Data Analysis":
             Publishedyear DESC
         """
 
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # Fetch the data
         data = fetch_data(query)
 
@@ -408,13 +379,6 @@ if selected == "Data Analysis":
         ORDER BY 
             discount_percentage DESC
         """
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # Fetch the data
         data = fetch_data(query)
 
@@ -439,13 +403,6 @@ if selected == "Data Analysis":
         GROUP BY 
             isEbook
         """
-
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
 
         # Fetch the data
         data = fetch_data(query)
@@ -481,13 +438,6 @@ if selected == "Data Analysis":
         LIMIT 3
         """
 
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # Fetch the data
         data = fetch_data(query)
 
@@ -519,13 +469,6 @@ if selected == "Data Analysis":
         ORDER BY 
             count DESC
         """
-
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
 
         # Fetch the data
         data = fetch_data(query)
@@ -578,14 +521,6 @@ if selected == "Data Analysis":
         ORDER BY 
             book_title
         """
-
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # Fetch the data
         data = fetch_data(query)
 
@@ -620,13 +555,6 @@ if selected == "Data Analysis":
             ratingsCount DESC
         """
 
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # Fetch the data
         data = fetch_data(query)
 
@@ -651,13 +579,6 @@ if selected == "Data Analysis":
         ORDER BY 
             book_authors, Publishedyear
         """
-
-        # Fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
 
         # Fetch the data
         data = fetch_data(query)
@@ -726,12 +647,6 @@ if selected == "Data Analysis":
             st.write("Please enter a keyword to search.")
 
     if selected_option =="15.Year with the Highest Average Book Price":
-        # Function to fetch data from the database
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # SQL query to calculate the average book price per year
         query = """
         SELECT 
@@ -757,13 +672,6 @@ if selected == "Data Analysis":
             st.write("No data available.")
 
     if selected_option =="16.Count Authors Who Published 3 Consecutive Years":
-        # Function to fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # SQL query to count authors who published in 3 consecutive years
         query = """
                 SELECT 
@@ -803,7 +711,6 @@ if selected == "Data Analysis":
             st.write("No data available.")
 
     if selected_option =="17.Write a SQL query to find authors who have published books in the same year but under different publishers. Return the authors, year, and the COUNT of books they published in that year.":
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
         # Function to load data from the database
         def load_data():
             engine = create_engine('mysql+pymysql://root:K00th%40n%40llur@localhost:3306/bookscape')
@@ -832,13 +739,6 @@ if selected == "Data Analysis":
         st.dataframe(df)
 
     if selected_option =="18.Create a query to find the average amount_retailPrice of eBooks and physical books. Return a single result set with columns for avg_ebook_price and avg_physical_price. Ensure to handle cases where either category may have no entries":
-        # Function to fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # SQL query to find the average amount_retailPrice of eBooks and physical books
         query = """
         SELECT 
@@ -864,13 +764,6 @@ if selected == "Data Analysis":
             st.write("No data available.")
     
     if selected_option =="19.To identify books that have an averageRating that is more than two standard deviations away from the average rating of all books. Return the title, averageRating, and ratingsCount for these outliers.":
-       # Function to fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # SQL query to find books with averageRating more than two standard deviations away from the average
         query = """
         WITH stats AS (
@@ -912,13 +805,6 @@ if selected == "Data Analysis":
             st.write("No data available.") 
     
     if selected_option =="20.Determines which publisher has the highest average rating among its books, but only for publishers that have published more than 10 books. Return the publisher, average_rating, and the number of books published.":
-        # Function to fetch data from the database
-        @st.cache_data(ttl=60)  # Set a time-to-live (TTL) to refresh the cache periodically
-        def fetch_data(query):
-            with engine.connect() as connection:
-                result = pd.read_sql(query, connection)
-            return result
-
         # SQL query to find the publisher with the highest average rating among its books
         def load_data():
             query = """
