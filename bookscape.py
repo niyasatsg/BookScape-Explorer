@@ -12,7 +12,7 @@ from streamlit.runtime.caching import cache_data
 
 # Title of the project
 st.image('C:/Users/niyas.abdul/Documents/Bookscape-HeaderLogo.png')
-engine = create_engine('mysql+pymysql://root:K00th%40n%40llur@localhost:3306/bookscape')
+engine = create_engine('mysql+pymysql://root:123%40n%40llur@localhost:3306/bookscape')
 # Custom CSS to center the dataframe
 st.markdown(
     """
@@ -45,22 +45,31 @@ st.markdown(
     unsafe_allow_html=True
 )
 # Google Books API scrapping  
-def fetch_books_data(query, api_key, max_results=5):
-    query = f"{query}"
-    url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults={max_results}&key={api_key}"
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        return response.json()
-    except HTTPError as http_err:
-        if response.status_code == 429:  # Too Many Requests
-            st.warning("Rate limit exceeded. Retrying after a delay...")
-            time.sleep(60)  # Wait for 60 seconds before retrying
-            return fetch_books_data(search_query, api_key)
-        else:
-            st.error(f"HTTP error occurred: {http_err}")
-    except Exception as err:
-        st.error(f"An error occurred: {err}")
+def fetch_books_data(query, api_key, total_results=520):
+    books = []
+    max_results_per_request = 40
+    for start_index in range(0, total_results, max_results_per_request):
+        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&startIndex={start_index}&maxResults={max_results_per_request}&key={api_key}"
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            data = response.json()
+            if 'items' in data:
+                books.extend(data['items'])
+            if len(data.get('items', [])) < max_results_per_request:
+                break  # No more results available
+        except HTTPError as http_err:
+            if response.status_code == 429:  # Too Many Requests
+                print("Rate limit exceeded. Retrying after a delay...")
+                time.sleep(60)  # Wait for 60 seconds before retrying
+                return fetch_books_data(query, api_key, total_results)
+            else:
+                print(f"HTTP error occurred: {http_err}")
+                break
+        except Exception as err:
+            print(f"An error occurred: {err}")
+            break
+    return books
 # Extracted books details stored into database 
 def insert_books_into_db(books_list):
     try:
@@ -94,7 +103,6 @@ def insert_books_into_db(books_list):
                     "Publishedyear": book.get('Published Date', ''),
                     "categories": book.get('Categories', ''),
                     "publisher": book.get('Publisher', '')
-                    
                 }
                 sql = text("""
                     INSERT INTO books (book_id, search_key, book_title, book_subtitle, book_authors, book_description, industryIdentifiers, text_readingModes, image_readingModes, pageCount, languages, imageLinks, ratingsCount, averageRating, country, saleability, isEbook, amount_listPrice, currencyCode_listPrice, amount_retailPrice, currencyCode_retailPrice, buyLink, Publishedyear, categories, publisher)
@@ -154,11 +162,11 @@ if selected == "Search":
             if not search_query.strip():
                 st.error("Search query cannot be empty.")
             else:
-                api_key = "AIzaSyDSVnISPmCbFmhS4TsFc65DQZN3lYCVRxU" 
+                api_key = "your api key" 
                 books_data = fetch_books_data(search_query, api_key)
                 if books_data:
                     books_list = []
-                    for book in books_data.get('items', []):
+                    for book in books_data:
                         volume_info = book.get('volumeInfo', {})
                         sale_info = book.get('saleInfo', {})
                         title = volume_info.get('title')
@@ -180,26 +188,47 @@ if selected == "Search":
                         retail_price = sale_info.get('retailPrice', {})
                         buy_link = sale_info.get('buyLink')
                         published_date = volume_info.get('publishedDate')
-                        categories = volume_info.get('categories'),
+                        categories = volume_info.get('categories')
                         publisher = volume_info.get('publisher')
 
-                        books_list.append({
-                        "Title": title,
-                        "Authors": ', '.join(authors),
-                        "Page Count": page_count,
-                        "Published Date": published_date,
-                        "Categories":  categories,
-                        "Publisher":publisher
+                        list_price_amount = list_price.get('amount', 0)
+                        list_price_currency = list_price.get('currencyCode', '')
+                        retail_price_amount = retail_price.get('amount', 0)
+                        retail_price_currency = retail_price.get('currencyCode', '')
 
-                    })
+                        books_list.append({
+                            "Title": title,
+                            "Sub-Title": subtitle,
+                            "Authors": ', '.join(authors),
+                            "description": description,
+                            "industryIdentifiers": industry_identifiers,
+                            "Text Reading Modes": text_reading_modes,
+                            "Image Reading Modes": image_reading_modes,
+                            "Page Count": page_count,
+                            "language": language,
+                            "imageLinks": image_links,
+                            "Rating Count": ratings_count,
+                            "Average Rating": average_rating,
+                            "Country": country,
+                            "Saleability": saleability,
+                            "Is eBook": is_ebook,
+                            "List Price Amount": list_price_amount,
+                            "List Price Currency": list_price_currency,
+                            "Retail Price Amount": retail_price_amount,
+                            "Retail Price Currency": retail_price_currency,
+                            "Buy Link": buy_link,
+                            "Published Date": published_date,
+                            "Categories": categories,
+                            "Publisher": publisher
+                        })
 
                     df_books = pd.DataFrame(books_list)
-                    # Convert dataframe to HTML
-                    html_table = df_books.to_html(classes='dataframe', index=False)
-                    # Display the HTML table
-                    st.markdown(f'<div class="dataframe-container">{html_table}</div>', unsafe_allow_html=True)
-                    # Insert books into database
+                    df_books_selected = df_books[['Title', 'Authors', 'Categories', 'Page Count', 'Published Date']]
+                    df_books_head = df_books_selected.head(5)
+                    st.write(df_books_head)
+                    #Insert books into database
                     insert_books_into_db(books_list)
+                    
 # Perform data analysis with the given 20 different questions
 if selected == "Data Analysis":
     options = ["1.Check Availability of eBooks vs Physical Books", "2.Find the Publisher with the Most Books Published", "3.Identify the Publisher with the Highest Average Rating", "4.Get the Top 5 Most Expensive Books by Retail Price", "5.Find Books Published After 2010 with at Least 500 Pages", "6.List Books with Discounts Greater than 20%", "7.Find the Average Page Count for eBooks vs Physical Books", "8.Find the Top 3 Authors with the Most Books", "9.List Publishers with More than 10 Books", "10.Find the Average Page Count for Each Category", "11.Retrieve Books with More than 3 Authors", "12.Books with Ratings Count Greater Than the Average", "13.Books with the Same Author Published in the Same Year", "14.Books with a Specific Keyword in the Title", "15.Year with the Highest Average Book Price", "16.Count Authors Who Published 3 Consecutive Years", "17.Write a SQL query to find authors who have published books in the same year but under different publishers. Return the authors, year, and the COUNT of books they published in that year.", "18.Create a query to find the average amount_retailPrice of eBooks and physical books. Return a single result set with columns for avg_ebook_price and avg_physical_price. Ensure to handle cases where either category may have no entries", "19.To identify books that have an averageRating that is more than two standard deviations away from the average rating of all books. Return the title, averageRating, and ratingsCount for these outliers.", "20.Determines which publisher has the highest average rating among its books, but only for publishers that have published more than 10 books. Return the publisher, average_rating, and the number of books published."]
